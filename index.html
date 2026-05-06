@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calmora</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg,#F7F4EF,#A3C4D4);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+.app{
+    width:380px;
+    height:700px;
+    background:#fff;
+    border-radius:20px;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+}
+
+/* telas */
+.screen{display:none;flex:1;padding:20px}
+.active{display:flex;flex-direction:column}
+
+/* botões */
+button{
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    margin-top:10px;
+    cursor:pointer;
+}
+
+.primary{background:#A8C5A0;color:white}
+.secondary{background:none;color:#A8C5A0}
+
+/* HOME */
+.home{justify-content:center;align-items:center;text-align:center}
+.milo{
+    font-size:80px;
+    animation:breathe 3s infinite;
+}
+
+@keyframes breathe{
+0%,100%{transform:scale(1)}
+50%{transform:scale(1.05)}
+}
+
+/* TRILHA */
+.node{
+    width:70px;height:70px;
+    border-radius:50%;
+    background:#eee;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    margin:10px auto;
+    cursor:pointer;
+}
+
+.node.active{background:#A3C4D4}
+.node.done{background:#A8C5A0}
+
+/* DESENHO */
+.canvas{
+    flex:1;
+    border:2px dashed #ccc;
+    margin-top:10px;
+}
+
+/* RECOMPENSA */
+.reward{text-align:center;justify-content:center}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<!-- HOME -->
+<div class="screen home active" id="home">
+    <h1>🐼 Calmora</h1>
+    <div class="milo">🐼</div>
+    <p>Um momento de calma</p>
+    <button class="primary" onclick="go('trail')">Começar</button>
+</div>
+
+<!-- TRILHA -->
+<div class="screen" id="trail">
+    <h2>Fase 1</h2>
+    <div id="levels"></div>
+    <button onclick="go('home')">Voltar</button>
+</div>
+
+<!-- DESENHO -->
+<div class="screen" id="drawing">
+    <h2 id="levelTitle">Desenho</h2>
+    <canvas class="canvas" id="canvas"></canvas>
+    <button onclick="finish()">Concluir</button>
+</div>
+
+<!-- RECOMPENSA -->
+<div class="screen reward" id="reward">
+    <h2>🎉 Concluído!</h2>
+    <p>+15 gemas</p>
+    <button onclick="go('trail')">Próximo</button>
+</div>
+
+</div>
+
+<script>
+
+/* ===== ESTADO GLOBAL ===== */
+let state = {
+    gems:0,
+    level:1,
+    completed:[]
+}
+
+/* ===== NAVEGAÇÃO ===== */
+function go(screen){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'))
+    document.getElementById(screen).classList.add('active')
+}
+
+/* ===== CRIAR NÍVEIS ===== */
+const levelsDiv = document.getElementById('levels')
+
+function renderLevels(){
+    levelsDiv.innerHTML = ''
+    
+    for(let i=1;i<=5;i++){
+        let div = document.createElement('div')
+        div.className = 'node'
+        
+        if(state.completed.includes(i)) div.classList.add('done')
+        if(i===state.level) div.classList.add('active')
+
+        div.innerHTML = i
+
+        div.onclick = ()=>{
+            if(i <= state.level){
+                startLevel(i)
+            }
+        }
+
+        levelsDiv.appendChild(div)
+    }
+}
+
+renderLevels()
+
+/* ===== INICIAR NÍVEL ===== */
+function startLevel(lvl){
+    state.current = lvl
+    document.getElementById('levelTitle').innerText = "Nível " + lvl
+    go('drawing')
+}
+
+/* ===== CANVAS DESENHO ===== */
+const canvas = document.getElementById('canvas')
+const ctx = canvas.getContext('2d')
+
+canvas.width = 300
+canvas.height = 300
+
+let drawing = false
+
+canvas.addEventListener('mousedown', ()=> drawing=true)
+canvas.addEventListener('mouseup', ()=> drawing=false)
+canvas.addEventListener('mousemove', draw)
+
+function draw(e){
+    if(!drawing) return
+    ctx.fillRect(e.offsetX, e.offsetY, 3, 3)
+}
+
+/* ===== FINALIZAR ===== */
+function finish(){
+    state.completed.push(state.current)
+    state.level++
+    state.gems += 15
+
+    renderLevels()
+    go('reward')
+}
+
+</script>
+
+</body>
+</html>
